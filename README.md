@@ -133,6 +133,17 @@ Forwards and attacking midfielders command higher average fees than defensive pl
 
 Two numbers matter here. The correlation between `Start_Year` and `Fee_Euros` is **0.54** — a strong positive signal meaning the year of transfer is a more powerful price predictor than any player attribute. The correlation between `Age` and `Fee_Euros` is **-0.03** — confirming what the scatter plot showed. Market era dominates individual demographics.
 
+### 7 & 8. The Global Talent Pipeline — Feeder and Consumer Leagues
+**Two side-by-side horizontal bar charts** — left panel shows the top feeder leagues; right panel shows the biggest consuming leagues by total spend.
+ 
+**Chart 7 — Feeder leagues (left):** Filters every transfer where the destination is a Big 5 league (Premier League, LaLiga, Serie A, Bundesliga, Ligue 1) but the origin is not. The solid bars show total fee revenue that league received from selling players upward — the dashed pink outline shows how many individual players were exported. These two signals tell different stories: a league with long solid bars but a modest outline exports fewer but higher-value players (elite pipeline). A league with a large outline but shorter bars exports many players cheaply (volume pipeline).
+ 
+Liga Portugal, the Eredivisie, and the Jupiler Pro League consistently rank as the top three feeder leagues — not just by headcount but by fee value. This is structurally explained: these leagues have developed youth systems and scouting networks specifically oriented toward producing players for Big 5 clubs, and their domestic clubs have become expert at buying low, developing, and selling high.
+ 
+**Chart 8 — Consumer leagues (right):** Total transfer spend across all records in the dataset, ranked by league. Pink bars are Big 5 leagues; blue are everyone else. The Premier League dominates by a significant margin — not just in average fee (Chart 4) but in raw total outlay, reflecting both the volume of transfers and the price per transfer. The gap between the Premier League and the rest of the Big 5 is visible; the gap between the Big 5 collectively and all other leagues is stark. The Saudi Pro League and MLS appear as the only non-European competitions with meaningful spend, reflecting the recent Gulf investment wave and designated player rules respectively.
+ 
+The printed summary below the chart shows what percentage of Big 5 spending was on players imported from outside the Big 5 — the proportion of the elite transfer market that runs through the feeder pipeline.
+
 ---
 
 ## Feature Engineering
@@ -145,7 +156,7 @@ Raw data cannot be fed into a machine learning model directly. Text categories a
 
 **League Tier Ranking:** Rather than using league names as raw text (which the model cannot interpret), leagues were ranked empirically by their average transfer spend. The highest-spending league receives rank 1, and so on. This preserves the ordinal signal (moving to a richer league = premium price) without requiring manual tier assignments.
 
-**International Transfer Flag:** A binary column (`is_international`) was created — 1 if origin and destination leagues differ, 0 if not. Analysis showed international transfers average roughly €1.9M more than domestic moves.
+**International Transfer Flag:** A binary column (`is_international`) was created — 1 if the player moved between countries — a country-level flag rather than a league-level one (for e.g. England alone has both the Premier League and EFL Championship), 0 if not. Analysis showed international transfers average roughly €2.78M more than domestic moves.
 
 **Log Transformation of Target:** The prediction target (`Adjusted_Fee`) was log-transformed before model training. Predicting log-fees rather than raw fees forces the model to think in proportional terms rather than absolute euros, preventing massive outlier transfers from dominating the error signal during training.
 
@@ -183,7 +194,7 @@ Together these mean the negative R² is not an implementation error — it is a 
 
 **Clone the repository:**
 ```bash
-git clone https://github.com/yourusername/football-transfers.git
+git clone https://github.com/Sam-2604/football-transfers.git
 cd football-transfers
 ```
 
