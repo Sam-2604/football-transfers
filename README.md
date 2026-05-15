@@ -22,7 +22,7 @@ The football transfer market has undergone extraordinary financial transformatio
 
 | Attribute | Detail |
 |---|---|
-| Source | [Kaggle — Global Football Transfer Dataset](https://www.kaggle.com/datasets/rajbirahmed/global-football-transfer-dataset) |
+| Source | [Kaggle — Global Football Transfer Dataset](#) *(placeholder)* |
 | Coverage | 2000-01 season to 2025-26 season |
 | Scope | Top 100 transfers by fee per season |
 | Records | ~2,600 transfers |
@@ -165,9 +165,17 @@ The choice of 100 estimators (`n_estimators=100`) with `random_state=42` (for re
 
 Transfer fees are log-normally distributed — the log of the fee follows a normal distribution. Predicting on this scale means the model treats a €5M error on a €10M transfer (50% off) the same as a €5M error on a €200M transfer (2.5% off). Log-transformation makes the error metric proportionally sensible across the full price range.
 
-### The R² Outcome as a Finding
+### Why the Model Produced a Negative R² — and Why That's the Finding
 
-The model produced a low R² score, meaning it explains only a small proportion of variance in transfer fees. This is not a failure — it is the most important result. It is mathematical proof that age, position, league, and year collectively cannot account for most of what drives a player's price. The unmodelled factors — contract length remaining, selling club's financial desperation, media hype, agent relationships, deadline-day dynamics — are the real drivers. Feature importance from the model confirmed that `Start_Year` (market era) was the strongest predictor by a significant margin, far outweighing any player attribute.
+R² measures what fraction of the variance in actual fees the model explains. A score of 1.0 is perfect. A score of 0.0 means the model is no better than always predicting the mean fee for every transfer. A **negative** R² means the model's predictions are actively worse than that baseline — it would have been more accurate to just guess the average every time.
+
+Two compounding technical reasons explain this result:
+
+**Reason 1 — Severe overfitting on noise.** Random Forest is a powerful algorithm — so powerful it will find patterns even where none genuinely exist. During training on the 80% split, the model memorised specific historical quirks: rules like *"a 24-year-old moving to a Rank 3 league in 2018 commands a premium."* These quirks are market noise, not universal laws. When the model applied those memorised rules to the unseen 20% test set, they backfired — producing predictions further from the truth than a simple average would have been.
+
+**Reason 2 — The missing feature problem.** The correlation analysis showed that `Age` has a -0.03 correlation with fee — effectively zero. The features available (age, position, league tier, year, transfer type) are the 10% of the puzzle the public dataset provides. The true drivers of a transfer fee — individual performance statistics (goals, assists, progressive carries), remaining contract length, commercial appeal, agent leverage, and selling club desperation — are absent entirely. Forced to predict without them, the model makes wild errors on the test set.
+
+Together these mean the negative R² is not an implementation error — it is a correct result from a correctly built model on an insufficient feature set. **That is precisely the insight.** It proves quantitatively that publicly available demographic and market data alone cannot predict transfer fees, which has direct implications for how scouting and valuation departments should think about data infrastructure.
 
 ---
 
@@ -185,7 +193,7 @@ pip install -r requirements.txt
 ```
 
 **Place the raw dataset:**
-Download `global_football_transfer_dataset.csv` from [Kaggle](https://www.kaggle.com/datasets/rajbirahmed/global-football-transfer-dataset) and move it into the `data/` directory.
+Download `global_football_transfer_dataset.csv` from [Kaggle](#) *(placeholder)* and move it into the `data/` directory.
 
 **Launch the notebook:**
 ```bash
@@ -211,13 +219,15 @@ Run cells sequentially from top to bottom. Each phase saves an intermediate CSV 
 
 ## Conclusion & Real-World Implications
 
-The predictive model's low R² score is the finding, not the obstacle. This project demonstrates mathematically what football insiders have always known intuitively: **transfer fees are fundamentally irrational by quantitative standards.** Demographic variables — age, position, league — account for a fraction of what a player costs. Market era (year) is the single strongest predictor, confirming that you are buying into an inflationary market as much as you are buying a specific player.
+The model's negative R² is the central finding of this project. It does not mean the model was built incorrectly — it means the features available in any public transfer dataset are structurally insufficient to predict fees. A negative R² is worse than predicting the mean for every transfer, which proves that the patterns the model memorised during training (market noise from the 80% split) actively misled it on unseen data. **Demographic and market variables account for less than zero net predictive value once the model attempts to generalise.**
 
-For **scouting departments and technical directors**, this suggests that fee prediction models built purely on player demographics will structurally underperform. The missing variables are qualitative: remaining contract length (urgency premium), a club's financial position on deadline day, individual statistical output, and the player's commercial marketability.
+This demonstrates mathematically what football insiders have always known intuitively: transfer fees are driven by qualitative, private information — contract length remaining, a club's financial desperation on deadline day, a player's commercial marketability, and agent leverage. None of these appear in any public dataset.
 
-For **financial analysts and club ownership groups**, the mean-vs-median inflation finding highlights a bifurcating market. The elite tier of transfers (€80M+) is growing at an exponential rate disconnected from the median transfer. Clubs without access to sovereign wealth or broadcast-rich league income are structurally unable to compete for the top tier and should build strategy around the feeder league pipeline instead.
+For **scouting departments and technical directors**, this result reframes the data infrastructure question. Fee prediction models built purely on demographics will not just underperform — they will produce predictions worse than a baseline guess. Useful valuation tooling requires performance metrics (StatsBomb, Opta), contract data, and commercial indicators at minimum.
 
-For **data science practitioners**, this project illustrates a core professional lesson: a model that fails to predict accurately can produce more actionable insight than one that succeeds — if you understand why it fails.
+For **financial analysts and club ownership groups**, the mean-vs-median inflation finding is the more actionable output. The market is bifurcating: the elite tier (€80M+) inflates exponentially while the median transfer rises modestly. Clubs without sovereign wealth or top-tier broadcast revenue cannot compete in the superstar market and should build strategy around feeder league pipelines instead — Liga Portugal, Eredivisie, and EFL Championship being the primary talent exporters into the Big 5.
+
+For **data science practitioners**, this project illustrates a core professional principle: a model that fails informatively is more valuable than one that succeeds without explanation. The negative R² is a number; understanding the two reasons it happened — overfitting on noise and the missing feature problem — is the knowledge.
 
 ---
 
